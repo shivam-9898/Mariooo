@@ -1,0 +1,107 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shivam's 3D Adventure</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    let scene, camera, renderer, cube, clock;
+    let velocity = new THREE.Vector3();
+    let direction = new THREE.Vector3();
+    let canJump = false;
+
+    // Set up the scene
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+    
+    // Create a simple cube for the hero (Shivam)
+    const geometry = new THREE.BoxGeometry(1, 2, 1);
+    const material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+    cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
+    cube.position.y = 1; // Start above the ground
+    
+    // Add a basic ground plane
+    const groundGeometry = new THREE.PlaneGeometry(100, 100);
+    const groundMaterial = new THREE.MeshBasicMaterial({ color: 0x808080 });
+    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    ground.rotation.x = - Math.PI / 2;
+    scene.add(ground);
+    
+    // Set camera position
+    camera.position.z = 5;
+    camera.position.y = 2;
+
+    // Clock for smooth animations
+    clock = new THREE.Clock();
+
+    // Controls
+    const controls = {
+      moveLeft: false,
+      moveRight: false,
+      jump: false,
+    };
+
+    window.addEventListener('keydown', function (event) {
+      if (event.key === 'ArrowLeft') controls.moveLeft = true;
+      if (event.key === 'ArrowRight') controls.moveRight = true;
+      if (event.key === ' ' && canJump) { controls.jump = true; canJump = false; }
+    });
+
+    window.addEventListener('keyup', function (event) {
+      if (event.key === 'ArrowLeft') controls.moveLeft = false;
+      if (event.key === 'ArrowRight') controls.moveRight = false;
+      if (event.key === ' ') controls.jump = false;
+    });
+
+    function updateMovement() {
+      const delta = clock.getDelta(); // seconds.
+      const speed = 10;
+
+      direction.z = 0;
+      direction.x = 0;
+      
+      // Left/Right movement
+      if (controls.moveLeft) direction.x = -1;
+      if (controls.moveRight) direction.x = 1;
+
+      // Apply movement
+      velocity.x = direction.x * speed * delta;
+      velocity.y -= 9.8 * delta; // Gravity
+      cube.position.add(velocity);
+
+      // Simple Jump
+      if (controls.jump) {
+        velocity.y = 5; // Jump force
+      }
+
+      // Collision with ground
+      if (cube.position.y < 1) {
+        cube.position.y = 1;
+        velocity.y = 0;
+        canJump = true;
+      }
+    }
+
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+      updateMovement();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
